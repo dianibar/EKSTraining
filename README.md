@@ -1,178 +1,70 @@
 
 <h3 align="center">EKS Training</h3>
 
-
 <!-- GETTING STARTED -->
+
+## Push and Pull and Image to ECR
+
+### Create the repository
+1. Open the Amazon ECR console at https://console.aws.amazon.com/ecr/.
+2. Choose Get Started.
+3. For Visibility settings, choose Private.
+4. For Repository name, specify a name for the repository hello_app.
+5. For Tag immutability, choose the tag mutability setting for the repository.
+
+### push the image
+1. Create a Folder hello_app
+2. Inside the folder create a python script hello_world.py with the following content
+```
+print("Hello World")
+```    
+3. In the Same Folder create a dockerfile with the following content
+```
+# Use an official Python runtime as a parent image
+FROM python:3.8
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+
+COPY ./hello_world.py /app
+
+# Set the entry point to run the scripts
+ENTRYPOINT ["python", "hello_world.py"]
+```
+4. Build the image 
+docker build -t my-hello-world .
+5. Select the repository and click the button view push commands
+* Authenticate with the repository
+   
+ ```
+ aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin <account_number>.dkr.ecr.<region>.amazonaws.com
+ ```  
+   * Tag the image
+```
+docker tag my-hello-world <account_number>.dkr.ecr.<region>.amazonaws.com/hello_app:latest
+
+```
+
+   * Push the image
+```
+docker tag my-hello-world <account_number>.dkr.ecr.<region>.amazonaws.com/hello_app:latest
+
+```
+
 ## Creating and setting up the Cloud9 environment
 
-1. Create the IAM policy for the EC2 instance profile role:
-
-The following instructions are provided in this [link](https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/deploy-an-amazon-eks-cluster-from-aws-cloud9-using-an-ec2-instance-profile.html#deploy-an-amazon-eks-cluster-from-aws-cloud9-using-an-ec2-instance-profile-epics) 
-* Open the IAM console.
-* Choose Policies. 
-* Create policy. 
-* Choose the JSON tab and paste the following content
-
-```
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "VisualEditor0",
-            "Effect": "Allow",
-            "Action": [
-                "iam:GetRole",
-                "iam:PassRole",
-                "logs:CreateLogStream",
-                "ec2:DeleteTags",
-                "cloudformation:CreateStack",
-                "ec2:CreateTags",
-                "logs:DescribeLogStreams",
-                "cloudformation:DeleteStack",
-                "cloudformation:CreateChangeSet",
-                "cloudformation:DescribeStacks"
-            ],
-            "Resource": [
-                "arn:aws:ec2:*:*:subnet/*",
-                "arn:aws:ec2:*:*:vpc/*",
-                "arn:aws:cloudformation:*:*:stack/*/*",
-                "arn:aws:iam::*:role/*",
-                "arn:aws:logs:*:*:log-group:/aws/eks/*:*"
-            ]
-        },
-        {
-            "Sid": "VisualEditor1",
-            "Effect": "Allow",
-            "Action": "iam:CreateServiceLinkedRole",
-            "Resource": "*",
-            "Condition": {
-                "StringLike": {
-                    "iam:AWSServiceName": "elasticloadbalancing.amazonaws.com"
-                }
-            }
-        },
-        {
-            "Sid": "VisualEditor2",
-            "Effect": "Allow",
-            "Action": "iam:CreateServiceLinkedRole",
-            "Resource": "*",
-            "Condition": {
-                "StringLike": {
-                    "iam:AWSServiceName": "eks.amazonaws.com"
-                }
-            }
-        },
-        {
-            "Sid": "VisualEditor3",
-            "Effect": "Allow",
-            "Action": [
-                "elasticloadbalancing:ModifyListener",
-                "elasticloadbalancing:DetachLoadBalancerFromSubnets",
-                "ec2:AuthorizeSecurityGroupIngress",
-                "ec2:DescribeInstances",
-                "elasticloadbalancing:RegisterTargets",
-                "ec2:CreateKeyPair",
-                "ec2:DescribeVolumesModifications",
-                "elasticloadbalancing:DeleteLoadBalancer",
-                "elasticloadbalancing:DescribeLoadBalancers",
-                "ec2:DeleteVolume",
-                "ec2:CreateNetworkInterfacePermission",
-                "autoscaling:DescribeAutoScalingGroups",
-                "ec2:CreateRoute",
-                "iam:ListAttachedRolePolicies",
-                "ec2:DescribeVolumes",
-                "elasticloadbalancing:DescribeLoadBalancerPolicies",
-                "autoscaling:UpdateAutoScalingGroup",
-                "ec2:DescribeKeyPairs",
-                "elasticloadbalancing:ModifyTargetGroupAttributes",
-                "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
-                "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
-                "ec2:DescribeRouteTables",
-                "ec2:DetachVolume",
-                "ec2:ModifyVolume",
-                "elasticloadbalancing:SetLoadBalancerPoliciesForBackendServer",
-                "ec2:CreateTags",
-                "elasticloadbalancing:CreateTargetGroup",
-                "ec2:ModifyNetworkInterfaceAttribute",
-                "ec2:DeleteNetworkInterface",
-                "elasticloadbalancing:DeregisterTargets",
-                "logs:CreateLogGroup",
-                "ec2:CreateVolume",
-                "elasticloadbalancing:DescribeLoadBalancerAttributes",
-                "ec2:CreateNetworkInterface",
-                "ec2:RevokeSecurityGroupIngress",
-                "elasticloadbalancing:DescribeTargetGroupAttributes",
-                "elasticloadbalancing:AddTags",
-                "elasticloadbalancing:DeleteLoadBalancerListeners",
-                "ec2:DescribeSubnets",
-                "elasticloadbalancing:ModifyLoadBalancerAttributes",
-                "cloudformation:ValidateTemplate",
-                "ec2:AttachVolume",
-                "eks:UpdateClusterVersion",
-                "elasticloadbalancing:ConfigureHealthCheck",
-                "ec2:DescribeDhcpOptions",
-                "elasticloadbalancing:CreateListener",
-                "elasticloadbalancing:DescribeListeners",
-                "ec2:DescribeNetworkInterfaces",
-                "ec2:CreateSecurityGroup",
-                "elasticloadbalancing:ApplySecurityGroupsToLoadBalancer",
-                "kms:DescribeKey",
-                "ec2:ModifyInstanceAttribute",
-                "elasticloadbalancing:CreateLoadBalancerPolicy",
-                "elasticloadbalancing:CreateLoadBalancer",
-                "elasticloadbalancing:AttachLoadBalancerToSubnets",
-                "ec2:DeleteRoute",
-                "elasticloadbalancing:DeleteTargetGroup",
-                "elasticloadbalancing:CreateLoadBalancerListeners",
-                "ec2:DescribeSecurityGroups",
-                "elasticloadbalancing:SetLoadBalancerPoliciesOfListener",
-                "ec2:DescribeVpcs",
-                "ec2:DeleteSecurityGroup",
-                "elasticloadbalancing:DescribeTargetHealth",
-                "elasticloadbalancing:DescribeTargetGroups",
-                "route53:AssociateVPCWithHostedZone",
-                "elasticloadbalancing:ModifyTargetGroup",
-                "elasticloadbalancing:DeleteListener"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Sid": "VisualEditor4",
-            "Effect": "Allow",
-            "Action": [
-                "ssm:GetParameters",
-                "logs:PutLogEvents",
-                "ssm:GetParameter"
-            ],
-            "Resource": [
-                "arn:aws:logs:*:*:log-group:/aws/eks/*:*:*",
-                "arn:aws:ssm:*:*:parameter/*"
-            ]
-        },
-        {
-            "Sid": "VisualEditor5",
-            "Effect": "Allow",
-            "Action": "eks:*",
-            "Resource": [
-                "arn:aws:eks:*:*:cluster/*",
-                "arn:aws:eks:*:*:nodegroup/*/*/*"
-            ]
-        }
-    ]
-}
-```
-
-* Choose Review policy.
-* Enter a Name for the policy like eks-instance-profile-for-cloud9
-* Select Create Policy
-
-2. Create the EC3 instance profile role:
+1. Create the EC3 instance profile role:
 
 * Open the IAM console.
 * Choose Roles.
 * Choose Create role
 * Choose AWS Service and then choose EC2 from the list.
-* Choose Next: Permissions and search for the IAM policy that you created earlier.
+* Choose Next: Permissions and search and check the IAM policy AdministratorAccess
+* Check the policy AWSCloud9SSMInstanceProfile
+
+
 * In the Review section, enter a name for the role like role-eks-instance-profile-for-cloud9
 * Then choose create role.
 
@@ -237,66 +129,160 @@ sudo mv terraform /usr/local/bin
 For this part of the lab we are going to use this [AWS lab](https://catalog.us-east-1.prod.workshops.aws/workshops/ed1a8610-c721-43be-b8e7-0f300f74684e/en-US/contdock/dockerbasics)
 
 
-### Create an EKS cluster 
+## Create an EKS cluster 
 
 1. Clone this project and move to the Terraform folder to create the cluster
 
 ```
 git clone https://github.com/dianibar/EKSTraining.git
 
-cd EKSTrainig/terraform
+cd EKSTraining/terraform/
+```
 
+2. Install Terraform using the following commands:
 
 ```
-### Create a Docker image using an image base that supports ARM and push it to ECR
+wget https://releases.hashicorp.com/terraform/1.7.4/terraform_1.7.4_linux_amd64.zip
 
-1. In the folder graviton-poc/ruby-on-rails there is a helloworld rubby application. In the folder, there is also a Docker file using ruby:latest as the base image. Checking in [DockerHub](https://hub.docker.com/_/ruby) we can see that this image supports ARM architecture.
+unzip terraform_1.7.4_linux_amd64.zip
 
-2. ECR supports multi-architecture container images. To be able to create an image that is built for different architectures you can use an emulator. For this follow the instructions provided in this [AWS blog](https://aws.amazon.com/blogs/compute/how-to-quickly-setup-an-experimental-environment-to-run-containers-on-x86-and-aws-graviton2-based-amazon-ec2-instances-effort-to-port-a-container-based-application-from-x86-to-graviton2/) we can follow these steps:
-   
-   * Install buildx
+sudo mv terraform /usr/local/bin
+```
 
-   ```
-   curl --silent -L https://github.com/docker/buildx/releases/download/v0.13.1/buildx-v0.13.1.linux-amd64 -o buildx-v0.13.1.linux-amd64
-
-   chmod a+x buildx-v0.13.1.linux-amd64
-
-   mkdir -p ~/.docker/cli-plugins
-   
-   mv buildx-v0.13.1.linux-amd64 ~/.docker/cli-plugins/docker-buildx
-   
-   docker buildx
-   ```
-   * Enter the following command to configure Buildx binary for different architectures
-
-   ```
-   docker run --privileged --rm tonistiigi/binfmt --install all
-   ``` 
-   * Check to see a list of build environment.
-   ```
-   docker buildx ls
-   ```
-   * Create a new builder named mybuild and switch to it to use it as default.
-3. Create a multi-arch image for x*6 and Arm64 and push them to Amazon ECR
-   * Set the environment variables
-   ```
-   AWS_ACCOUNT_ID=aws-account-id
-   AWS_REGION=us-west-2
-   ```
-   * Authenticate your Docker client to your Amazon ECR registry
-
-   ```
-   login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-   ```
-   * Create your multi-archi image and push it to ECR
-   ```
-   docker buildx build --platform linux/amd64,linux/arm64 --tag ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/myrepo:latest --push .
-   ```
-### Run the application on EKS
-
-1. The folder graviton-poc/ruby-on-rails/kubernetes has a file with a service an a deployment. The deployment is configured to spread to multiple nodes. The eks cluster has been configured to have one node using t3.micro and another node using t4g.micro so it will show that the app runs in x86 and ARM.
+3. Create the EKS cluster using terraform
 
 ```
-cd graviton-poc/ruby-on-rails/kubernetes
-kubectl apply 
+terraform init
+
+terraform apply
+```
+
+4. Install kubectl
+
+```
+curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.29.0/2024-01-04/bin/linux/amd64/kubectl
+
+chmod +x ./kubectl
+
+kubectl version --client
+```
+
+5. Update kubeconfig
+
+```
+aws eks update-kubeconfig --region ap-southeast-2 --name my-eks
+```
+
+## Deploy an application in an EKS cluster
+
+We will create a application following the steps provided in this link [Deploy a sample application](https://docs.aws.amazon.com/eks/latest/userguide/sample-deployment.html) 
+
+1. create a namespace
+
+```
+kubectl create namespace eks-sample-app
+```
+
+2. Create a deployment
+*     Create a file **eks-sample-deployment.yaml** with the following content
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eks-sample-linux-deployment
+  namespace: eks-sample-app
+  labels:
+    app: eks-sample-linux-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: eks-sample-linux-app
+  template:
+    metadata:
+      labels:
+        app: eks-sample-linux-app
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
+      containers:
+      - name: nginx
+        image: public.ecr.aws/nginx/nginx:1.23
+        ports:
+        - name: http
+          containerPort: 80
+        imagePullPolicy: IfNotPresent
+      nodeSelector:
+        kubernetes.io/os: linux
+```
+
+3. Deploy the application
+
+```
+kubectl apply -f eks-sample-deployment.yaml
+```
+
+4. Exec in the created container and check nginx running
+
+```
+kubectl exec -n eks-sample-app -it eks-sample-linux-deployment-xxx.. -- sh 
+curl localhost
+```
+
+5. Create a service to access the application from outside the cluster for that create a file called eks-sample-service.yaml with the following 
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: eks-sample-linux-service
+  namespace: eks-sample-app
+  labels:
+    app: eks-sample-linux-app
+spec:
+  selector:
+    app: eks-sample-linux-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+```
+
+6. Deploy the service
+
+```
+kubectl apply -f eks-sample-service.yaml
+```
+
+7. Check all the resources in the namespace
+
+```
+kubectl get all -n eks-sample-app
+```
+
+8. Create a file eks-sample-service.yaml with the following content
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: eks-sample-linux-service
+  namespace: eks-sample-app
+  labels:
+    app: eks-sample-linux-app
+spec:
+  selector:
+    app: eks-sample-linux-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
 ```
